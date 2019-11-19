@@ -12,6 +12,11 @@ import UIKit
  *  The base delegate protocol for Pulley delegates.
  */
 @objc public protocol PulleyDelegate: class {
+	
+	/** This is called before size changes, so if you care about the bottomSafeArea property for custom UI layout, you can use this value.
+	* NOTE: It's not called *during* the transition between sizes (such as in an animation coordinator), but rather after the resize is complete.
+	*/
+	@objc optional func drawerPositionWillChange(drawer: PulleyViewController, newPosition: PulleyPosition, bottomSafeArea: CGFloat)
     
     /** This is called after size changes, so if you care about the bottomSafeArea property for custom UI layout, you can use this value.
      * NOTE: It's not called *during* the transition between sizes (such as in an animation coordinator), but rather after the resize is complete.
@@ -1180,6 +1185,8 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
             return
         }
         
+		self.delegate?.drawerPositionWillChange?(drawer: self, newPosition: position, bottomSafeArea: pulleySafeAreaInsets.bottom)
+		
         drawerPosition = position
         
         var collapsedHeight:CGFloat = kPulleyDefaultCollapsedHeight
@@ -1452,6 +1459,12 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
             return PulleyPosition.all
         }
     }
+	
+	public func drawerPositionWillChange(drawer: PulleyViewController, newPosition: PulleyPosition, bottomSafeArea: CGFloat) {
+		if let drawerVCCompliant = drawerContentViewController as? PulleyDrawerViewControllerDelegate {
+            drawerVCCompliant.drawerPositionWillChange?(drawer: drawer, newPosition: newPosition, bottomSafeArea: bottomSafeArea)
+        }
+	}
     
     open func drawerPositionDidChange(drawer: PulleyViewController, bottomSafeArea: CGFloat) {
         if let drawerVCCompliant = drawerContentViewController as? PulleyDrawerViewControllerDelegate {
